@@ -539,7 +539,7 @@ def dollars_person_bar():
         title=f'Top 10 AGI per capita {mig_direction_dict2[mig_direction]} flowing {mig_direction_dict[mig_direction]} {summary_dict[summary]}',
         labels={
             'sec_unique':f'{mig_direction_dict3[mig_direction]}',
-            f'agi_capita_{direction_lower}': 'tester chester'
+            f'agi_capita_{direction_lower}': f'Average AGI per capita {direction_lower}flow'
             })
 
     fig.update_traces(
