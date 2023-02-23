@@ -246,9 +246,6 @@ secondary_metro = {
 }
 
 
-# define columns
-col1, col2 = st.columns([1.5,1])
-
 
 # create a function to read in the correct metro data to the metric
 def metro_metric_cumulative():
@@ -275,11 +272,54 @@ def metro_metric_cumulative():
     x1 = metric_dict[mig_variable]
     return x1
 
+# create a function to read in the correct metro data to the metric
+def county_metric_cumulative():
+    df = pd.read_csv('Data/county_total_ALL.csv')
+    df = df[(df['year1'].isin(full_years)) & (df['year2'].isin(full_years))]
+    df = df.groupby('arc_county').sum().reset_index()
+    df = df[df['arc_county'] == county]
+    # migration summary
+    var_people = df[f'n2_{direction_lower}flow'].sum().astype(int)
+    var_prettify_people = prettify(var_people)
+    value1 = var_prettify_people
+    # agi summary
+    var_agi = df[f'agi_{direction_lower}flow'].sum()
+    var_prettify_agi = millify(var_agi, precision=2)
+    value2 = f'${var_prettify_agi}'
+    # agi per capita summary
+    var_agi_capita = var_agi / var_people
+    var_agi_capita = round(var_agi_capita.astype(int), 0)
+    var_prettify_agi_capita = prettify(var_agi_capita)
+    value3 = f'${var_prettify_agi_capita}'
+    metric_dict = {
+        'People':value1,
+        'Dollars':value2,
+        'Dollars per capita':value3
+    }
+    x1 = metric_dict[mig_variable]
+    return x1
+
 # create another function to calculate the net flow of people & dollars
 def metro_metric_net():
     df = pd.read_csv('Data/metro_ALL.csv')
     df = df[(df['year1'].isin(full_years)) & (df['year2'].isin(full_years))]
-    
+    net_people = df['n2_net'].sum()
+    net_people = prettify(net_people)
+    net_dollars = df['agi_net'].sum()
+    net_dollars = millify(net_dollars, precision=2)
+    metric_dict1 = {
+        'People':net_people,
+        'Dollars':f'${net_dollars}',
+    }
+    x2 = metric_dict1[mig_variable]
+    return x2
+
+
+def county_metric_net():
+    df = pd.read_csv('Data/county_total_ALL.csv')
+    df = df[(df['year1'].isin(full_years)) & (df['year2'].isin(full_years))]
+    df = df.groupby('arc_county').sum().reset_index()
+    df = df[df['arc_county'] == county]
     net_people = df['n2_net'].sum()
     net_people = prettify(net_people)
     net_dollars = df['agi_net'].sum()
@@ -357,9 +397,121 @@ def plotly_line_1():
     
     return fig
 
+def plotly_line_1_county():
+    # to be used for charting yearly net flow of persons & dollars
+    df_line = pd.read_csv('Data/county_total_ALL.csv')
+    df_line = df_line[df_line['arc_county'] == county]
+
+    fig = px.line(
+        df_line, 
+        x="year2", 
+        y=f'{var_csv_dict[mig_variable]}_net', 
+        title=f'Yearly <span style="text-decoration: underline;">net</span> flow of {var_lower} {mig_direction_dict[mig_direction]} {county}',
+        labels={
+            'year2':'Year',
+            f'{var_csv_dict[mig_variable]}_net': f'Net flow of {var_lower}'
+        },
+    )
+
+    fig.update_traces(
+        mode="markers+lines",
+        line_color='#FFFFFF',
+        hovertemplate=None
+        )
+
+    format_dict = {
+        'Dollars':'$~s',
+        'People':'~s'
+    }
+
+    fig.update_layout(
+        xaxis = dict(
+            showticklabels = True,
+            tickmode = 'array',
+            tickvals = slider_years,
+            ticktext = slider_years,
+            title = None
+            ),
+        margin = {
+            'l':10,
+            'r':10,
+            't':50,
+            'b':10
+            },
+        width=550,
+        height=275,
+        hovermode="x unified",
+        yaxis = dict(
+            title = None,
+            tickformat = format_dict[mig_variable]
+        )
+        )
+
+   
+    if slider_start in years:
+        fig.add_vline(x=years[1], line_width=0, line_dash="dash", line_color="#fd8d3c")
+    else:
+        fig.add_vline(x=years[0], line_width=3, line_dash="dash", line_color="#fd8d3c")
+    fig.add_vline(x=years[-1], line_width=3, line_dash="dash", line_color="#fd8d3c")
+    fig.add_hline(y=0, line_width=1, line_dash="dot", line_color="#FFFFFF")
+    
+    return fig
+
 def plotly_line_2():
     # used to chart yearly inflow/outflow of dollars per capita
     df_line = pd.read_csv('Data/metro_ALL.csv')
+
+    fig = px.line(
+        df_line, 
+        x="year2", 
+        y=f'agi_{direction_lower}flow_capita', 
+        title=f'Yearly {direction_lower}flow of dollars per capita',
+        labels={
+            'year2':'Year',
+            f'agi_{direction_lower}flow_capita': f'{mig_direction}flow of dollars per capita'},
+    )
+
+    fig.update_traces(
+        mode="markers+lines",
+        line_color='#FFFFFF',
+        hovertemplate=None
+        )
+
+    fig.update_layout(
+        yaxis_title = None,
+        xaxis = dict(
+            showticklabels = True,
+            tickmode = 'array',
+            tickvals = slider_years,
+            ticktext = slider_years,
+            title = None
+            ),
+        yaxis = dict(
+            tickformat = "$~s"
+        ),
+        margin = {
+            'l':10,
+            'r':10,
+            't':100,
+            'b':10
+            },
+        width=400,
+        height=300,
+        hovermode="x unified"
+        )
+
+    if slider_start in years:
+        fig.add_vline(x=years[1], line_width=0, line_dash="dash", line_color="#fd8d3c")
+    else:
+        fig.add_vline(x=years[0], line_width=3, line_dash="dash", line_color="#fd8d3c")
+    fig.add_vline(x=years[-1], line_width=3, line_dash="dash", line_color="#fd8d3c")
+    
+    return fig
+
+def plotly_line_2_county():
+    # used to chart yearly inflow/outflow of dollars per capita
+    df_line = pd.read_csv('Data/county_total_ALL.csv')
+    df_line = df_line[df_line['arc_county'] == county]
 
     fig = px.line(
         df_line, 
@@ -492,6 +644,7 @@ def plotly_bar_net():
 
     fig.update_layout(
         xaxis_title = None,
+        yaxis_title = None,
         margin = {
             'l':0,
             'r':10,
@@ -644,7 +797,8 @@ def dollars_person_map():
 
     return m
 
-
+# define columns
+col1, col2 = st.columns([1.5,1])
 
 # decision time
 if summary == '11-County Atlanta Metro':
@@ -663,12 +817,27 @@ if summary == '11-County Atlanta Metro':
         col1.plotly_chart(plotly_bar_net(), use_container_width=True, config = {'displayModeBar': False})
         with col2:
             subcol1, subcol2 = st.columns([1, 1])
-            subcol2.metric(label=f'Total flow (net):', value=metro_metric_net())
-            subcol1.metric(label=f'Total flow (gross):', value=metro_metric_cumulative())
+            subcol2.metric(label=f'Total {direction_lower}flow (net):', value=metro_metric_net())
+            subcol1.metric(label=f'Total {direction_lower}flow (gross):', value=metro_metric_cumulative())
         col2.plotly_chart(plotly_line_1(), use_container_width=True, config = {'displayModeBar': False})
         col2.plotly_chart(plotly_bar_total(), use_container_width=True, config = {'displayModeBar': False})
         
 
 else:
-    st.write("Coming soon!")  
+    if mig_variable == 'Dollars per capita':
+        with col1:
+            st.write(f'coming soon for {county}')
+        with col2:
+            subcol1, subcol2 = st.columns([1, 1])
+            subcol1.metric(label=f'Average {direction_lower}flow per capita - {county}', value=county_metric_cumulative())
+            subcol2.write("")
+        col2.plotly_chart(plotly_line_2_county(), use_container_width=True, config = {'displayModeBar': False})
+    else:
+        col1.write(f'Coming soon for {county}')
+        with col2:
+            subcol1, subcol2 = st.columns([1, 1])
+            subcol1.metric(label=f'Total {direction_lower}flow (gross)', value=county_metric_cumulative())
+            subcol2.metric(label=f'Total {direction_lower}flow (net)', value=county_metric_net())
+        col2.plotly_chart(plotly_line_1_county(), use_container_width=True, config = {'displayModeBar': False})
+        # col2.dataframe(plotly_line_1_county())
 
