@@ -10,7 +10,7 @@ from streamlit_folium import st_folium
 import geopandas as gpd
 
 # custo-myze vvvvvvvvvvvvvvvvvvvvvvvv
-im = Image.open('Data/content/migration.png')
+im = Image.open('content/migration.png')
 st.set_page_config(page_title='IRS Migration', layout="wide", page_icon=im)
 
 hide_default_format = """
@@ -156,7 +156,7 @@ else:
 
 # center the logo in the sidebar
 col1, col2, col3 = st.sidebar.columns([1,2,1])
-image = Image.open('Data/content/logo.png')
+image = Image.open('content/logo.png')
 col2.image(image, width=80)
 
 st.sidebar.text("")
