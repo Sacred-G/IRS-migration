@@ -669,6 +669,75 @@ def plotly_bar_net():
 
     return fig
 
+def plotly_bar_net_county():
+    df_bar_2 = pd.read_csv('Data/total_tester.csv')
+    df_bar_2 = df_bar_2.loc[:, ~df_bar_2.columns.str.startswith('Unnamed')]
+    df_bar_2 = df_bar_2[(df_bar_2['year1'].isin(full_years)) & (df_bar_2['year2'].isin(full_years))]
+    df_bar_2['sec_unique'] = df_bar_2['sec_unique'].map(secondary_metro).fillna(df_bar_2['sec_unique'])
+    df_bar_grouped_2 = df_bar_2.groupby('sec_unique').sum().reset_index()
+    df_bar_grouped_2 = df_bar_grouped_2[['sec_unique', 'n2_net', 'agi_net']]
+
+    # the 2 easy dataframes - just take the top 10
+    df_n2_in = df_bar_grouped_2.sort_values('n2_net', ascending=False).head(15)
+    df_agi_in = df_bar_grouped_2.sort_values('agi_net', ascending=False).head(15)
+
+    # some extra work for the 'bottom 10' dataframes
+    df_n2_out = df_bar_grouped_2.sort_values('n2_net', ascending=False).tail(15)
+    df_n2_out['n2_net'] = df_n2_out['n2_net'] * -1
+    df_n2_out = df_n2_out.sort_values('n2_net', ascending=False)
+
+    df_agi_out = df_bar_grouped_2.sort_values('agi_net', ascending=False).tail(15)
+    df_agi_out['agi_net'] = df_agi_out['agi_net'] * -1
+    df_agi_out = df_agi_out.sort_values('agi_net', ascending=False)
+
+    if mig_variable == 'People' and direction_lower == 'in':
+        df = df_n2_in
+    elif mig_variable == 'People' and direction_lower == 'out':
+        df = df_n2_out
+    elif mig_variable == 'Dollars' and direction_lower == 'in':
+        df = df_agi_in
+    else:
+        df = df_agi_out
+
+    fig = px.bar(
+        df,
+        y='sec_unique', 
+        x=f'{var_csv_dict[mig_variable]}_net',
+        title=f"{var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][1]}: top 15 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>net</span>)",
+        labels={
+            'sec_unique':f'{mig_direction_dict3[mig_direction]}',
+            f'{var_csv_dict[mig_variable]}_net': var_csv_dict3[f'{var_csv_dict[mig_variable]}_net']
+            },
+        orientation='h'
+    )
+
+    fig.update_layout(
+        xaxis_title = None,
+        yaxis_title = None,
+        margin = {
+            'l':0,
+            'r':10,
+            't':50,
+            'b':10
+            },
+        width=400,
+        height=650,
+        bargap=0.5,
+        xaxis = dict(
+            tickformat = "~s"
+        ),
+    )
+
+    fig.update_traces(
+        marker_color='rgba(253,141,60, 1)', 
+        marker_line_color='rgba(253,141,60, 0)',
+        marker_line_width=3,
+        )
+
+    fig.update_yaxes(autorange="reversed")
+
+    return fig
+
 def dollars_person_bar():
     df = pd.read_csv('Data/county_to_county_ALL.csv')
     df = df.loc[:, ~df.columns.str.startswith('Unnamed')]
