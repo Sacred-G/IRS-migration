@@ -246,6 +246,11 @@ secondary_metro = {
     'Maricopa County, AZ':'Maricopa County, AZ (Phoenix)'
 }
 
+format_dict = {
+    'Dollars':'$~s',
+    'People':',',
+    'Dollars per capita':'$.2f'
+}
 
 
 # create a function to read in the correct metro data to the metric
@@ -457,6 +462,12 @@ def plotly_line_2():
     # used to chart yearly inflow/outflow of dollars per capita
     df_line = pd.read_csv('Data/metro_ALL.csv')
 
+    format_dict = {
+        'Dollars':'$~s',
+        'People':',',
+        'Dollars per capita':'$,'
+    }
+
     fig = px.line(
         df_line, 
         x="year2", 
@@ -474,7 +485,6 @@ def plotly_line_2():
         )
 
     fig.update_layout(
-        yaxis_title = None,
         xaxis = dict(
             showticklabels = True,
             tickmode = 'array',
@@ -483,7 +493,8 @@ def plotly_line_2():
             title = None
             ),
         yaxis = dict(
-            tickformat = "$~s"
+            title = None,
+            tickformat = format_dict[mig_variable]
         ),
         margin = {
             'l':10,
@@ -535,7 +546,7 @@ def plotly_line_2_county():
             title = None
             ),
         yaxis = dict(
-            tickformat = "$~s"
+            tickformat = format_dict[mig_variable]
         ),
         margin = {
             'l':10,
@@ -690,6 +701,11 @@ def plotly_bar_net():
     else:
         df = df_agi_out
 
+    tick_format_dict = {
+    'Dollars':'$~s',
+    'People':','
+        }
+
     fig = px.bar(
         df,
         y='sec_unique', 
@@ -715,8 +731,8 @@ def plotly_bar_net():
         height=725,
         bargap=0.5,
         xaxis = dict(
-            tickformat = "~s"
-        ),
+            tickformat = tick_format_dict[mig_variable]
+        )
     )
 
     fig.update_traces(
