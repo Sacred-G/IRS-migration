@@ -671,22 +671,26 @@ def plotly_bar_net():
 
 def plotly_bar_net_county():
     df_bar_2 = pd.read_csv('Data/total_tester.csv')
+    df_bar_2 = df_bar_2[df_bar_2['arc_county'] == county]
     df_bar_2 = df_bar_2.loc[:, ~df_bar_2.columns.str.startswith('Unnamed')]
     df_bar_2 = df_bar_2[(df_bar_2['year1'].isin(full_years)) & (df_bar_2['year2'].isin(full_years))]
-    df_bar_2['sec_unique'] = df_bar_2['sec_unique'].map(secondary_metro).fillna(df_bar_2['sec_unique'])
-    df_bar_grouped_2 = df_bar_2.groupby('sec_unique').sum().reset_index()
-    df_bar_grouped_2 = df_bar_grouped_2[['sec_unique', 'n2_net', 'agi_net']]
+    df_bar_2['secondary_county_y'] = df_bar_2['secondary_county_y'].map(secondary_metro).fillna(df_bar_2['secondary_county_y'])
+    df_bar_grouped_2 = df_bar_2.groupby('unique_tag2').sum().reset_index()
+    df_bar_grouped_2['secondary_county'] = df_bar_grouped_2['unique_tag2'].str.split('-').str[1]
+    df_bar_grouped_2['secondary_state'] = df_bar_grouped_2['unique_tag2'].str.split('-').str[2]
+    df_bar_grouped_2['secondary'] = df_bar_grouped_2['secondary_county'] + ', ' + df_bar_grouped_2['secondary_state'] 
+    df_bar_grouped_2 = df_bar_grouped_2[['secondary', 'n2_net', 'agi_net']]
 
     # the 2 easy dataframes - just take the top 10
-    df_n2_in = df_bar_grouped_2.sort_values('n2_net', ascending=False).head(15)
-    df_agi_in = df_bar_grouped_2.sort_values('agi_net', ascending=False).head(15)
+    df_n2_in = df_bar_grouped_2.sort_values('n2_net', ascending=False).head(10)
+    df_agi_in = df_bar_grouped_2.sort_values('agi_net', ascending=False).head(10)
 
     # some extra work for the 'bottom 10' dataframes
-    df_n2_out = df_bar_grouped_2.sort_values('n2_net', ascending=False).tail(15)
+    df_n2_out = df_bar_grouped_2.sort_values('n2_net', ascending=False).tail(10)
     df_n2_out['n2_net'] = df_n2_out['n2_net'] * -1
     df_n2_out = df_n2_out.sort_values('n2_net', ascending=False)
 
-    df_agi_out = df_bar_grouped_2.sort_values('agi_net', ascending=False).tail(15)
+    df_agi_out = df_bar_grouped_2.sort_values('agi_net', ascending=False).tail(10)
     df_agi_out['agi_net'] = df_agi_out['agi_net'] * -1
     df_agi_out = df_agi_out.sort_values('agi_net', ascending=False)
 
@@ -701,11 +705,11 @@ def plotly_bar_net_county():
 
     fig = px.bar(
         df,
-        y='sec_unique', 
+        y='secondary', 
         x=f'{var_csv_dict[mig_variable]}_net',
-        title=f"{var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][1]}: top 15 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>net</span>)",
+        title=f"{var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][1]}: top 10 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>net</span>)",
         labels={
-            'sec_unique':f'{mig_direction_dict3[mig_direction]}',
+            'secondary':f'{mig_direction_dict3[mig_direction]}',
             f'{var_csv_dict[mig_variable]}_net': var_csv_dict3[f'{var_csv_dict[mig_variable]}_net']
             },
         orientation='h'
@@ -737,6 +741,7 @@ def plotly_bar_net_county():
     fig.update_yaxes(autorange="reversed")
 
     return fig
+    # return df_bar_grouped_2
 
 def dollars_person_bar():
     df = pd.read_csv('Data/county_to_county_ALL.csv')
@@ -875,7 +880,6 @@ if summary == '11-County Atlanta Metro':
         with col1:
             st.write(f"Average AGI per capita ({direction_lower}flow)")
             st_map = st_folium(dollars_person_map(), width=650)
-            # col1.dataframe(dollars_person_map(), use_container_width=True)
         with col2:
             subcol1, subcol2 = st.columns([1, 1])
             subcol1.metric(label=f'Average metro {direction_lower}flow per capita:', value=metro_metric_cumulative())
@@ -902,7 +906,7 @@ else:
             subcol2.write("")
         col2.plotly_chart(plotly_line_2_county(), use_container_width=True, config = {'displayModeBar': False})
     else:
-        col1.write(f'Coming soon for {county}')
+        col1.plotly_chart(plotly_bar_net_county(), use_container_width=True, config = {'displayModeBar': False})
         with col2:
             subcol1, subcol2 = st.columns([1, 1])
             subcol1.metric(label=f'Total {direction_lower}flow (gross)', value=county_metric_cumulative())
