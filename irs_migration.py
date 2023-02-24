@@ -74,8 +74,8 @@ var_csv_dict = {
 var_csv_dict2 = {
     'n2_inflow':['Total inflow', 'Where they\'re coming from'],
     'n2_outflow':['Total outflow', 'Where they\'re going'],
-    'agi_inflow':['Total inflow ($)', 'Where dollars are coming from'],
-    'agi_outflow':['Total outflow ($)', 'Where dollars are going']
+    'agi_inflow':['Total inflow', 'Where dollars are coming from'],
+    'agi_outflow':['Total outflow', 'Where dollars are going']
 }
 
 
@@ -242,7 +242,8 @@ secondary_metro = {
     'Williamson County, TN':'Williamson County, TN (Nashville metro)',
     'Warren County, OH':'Warren County, OH (Cincinnati metro)',
     'Johnson County, KS':'Johnson County, KS (Kansas City metro)',
-    'Somerset County, NJ':'Somerset County, NJ (NYC metro)'
+    'Somerset County, NJ':'Somerset County, NJ (NYC metro)',
+    'Maricopa County, AZ':'Maricopa County, AZ (Phoenix)'
 }
 
 
@@ -336,6 +337,11 @@ def plotly_line_1():
     # to be used for charting yearly net flow of persons & dollars
     df_line = pd.read_csv('Data/metro_ALL.csv')
 
+    format_dict = {
+        'Dollars':'$~s',
+        'People':','
+    }
+
     fig = px.line(
         df_line, 
         x="year2", 
@@ -351,21 +357,6 @@ def plotly_line_1():
         mode="markers+lines",
         line_color='#FFFFFF',
         hovertemplate=None
-        )
-
-    if mig_variable == 'Dollars':
-        fig.update_layout(
-            yaxis = dict(
-                title = None,
-                tickvals = [200000000,0,-200000000,-400000000, -600000000],
-                ticktext = ['$200M', '$0', '-$200M', '-$400M', '-$600M']
-            )
-        )
-    else:
-        fig.update_layout(
-            yaxis = dict(
-                title = None
-            )
         )
 
     fig.update_layout(
@@ -384,7 +375,11 @@ def plotly_line_1():
             },
         width=550,
         height=275,
-        hovermode="x unified"
+        hovermode="x unified",
+        yaxis = dict(
+            title = None,
+            tickformat = format_dict[mig_variable]
+            )
         )
 
    
@@ -401,6 +396,7 @@ def plotly_line_1_county():
     # to be used for charting yearly net flow of persons & dollars
     df_line = pd.read_csv('Data/county_total_ALL.csv')
     df_line = df_line[df_line['arc_county'] == county]
+
 
     fig = px.line(
         df_line, 
@@ -421,7 +417,7 @@ def plotly_line_1_county():
 
     format_dict = {
         'Dollars':'$~s',
-        'People':'~s'
+        'People':','
     }
 
     fig.update_layout(
@@ -444,7 +440,7 @@ def plotly_line_1_county():
         yaxis = dict(
             title = None,
             tickformat = format_dict[mig_variable]
-        )
+            )
         )
 
    
@@ -570,11 +566,17 @@ def plotly_bar_total():
     df_bar_grouped = df_bar.groupby('sec_unique').sum().reset_index()
     df_bar_grouped = df_bar_grouped.sort_values(f'{var_csv_dict[mig_variable]}_{direction_lower}flow', ascending=False).head(10)
 
+    tick_format_dict = {
+        'Dollars':'$~s',
+        'People':','
+    }
+
     fig = px.bar(
         df_bar_grouped, 
         x='sec_unique', 
         y=f'{var_csv_dict[mig_variable]}_{direction_lower}flow',
-        title=f"{var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][1]}: top 10 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>gross</span>)",
+        # title=f"{var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][1]}: top 10 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>gross</span>)",
+        title=f"Top 10 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>gross</span>)",
         labels={
             'sec_unique':f'{mig_direction_dict3[mig_direction]}',
             f'{var_csv_dict[mig_variable]}_{direction_lower}flow': var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][0]},
@@ -588,9 +590,67 @@ def plotly_bar_total():
             't':50,
             'b':10
             },
-        height=320,
-        bargap=0.7
+        height=380,
+        width=550,
+        bargap=0.7,
+        yaxis = dict(
+            title = None,
+            tickformat = tick_format_dict[mig_variable]
+        )
     )
+
+    fig.update_traces(
+        marker_color='rgba(253,141,60, 1)', 
+        marker_line_color='rgba(253,141,60, 0)',
+        marker_line_width=3, 
+        )
+    
+    return fig
+
+def plotly_bar_total_county():
+    # used to chart top origins / destinations
+    df_bar = pd.read_csv('Data/total_tester.csv')
+    df_bar = df_bar[df_bar['arc_county'] == county]
+    df_bar = df_bar.loc[:, ~df_bar.columns.str.startswith('Unnamed')]
+    df_bar = df_bar[(df_bar['year1'].isin(full_years)) & (df_bar['year2'].isin(full_years))]
+    # fill in the counties with their respective metro areas parenthetically
+    df_bar['secondary_county_y'] = df_bar['secondary_county_y'].map(secondary_metro).fillna(df_bar['secondary_county_y'])
+    df_bar_grouped = df_bar.groupby('secondary_county_y').sum().reset_index()
+    df_bar_grouped = df_bar_grouped.sort_values(f'{var_csv_dict[mig_variable]}_{direction_lower}flow', ascending=False).head(10)
+
+    tick_format_dict = {
+        'Dollars':'$~s',
+        'People':','
+    }
+
+    fig = px.bar(
+        df_bar_grouped, 
+        x='secondary_county_y', 
+        y=f'{var_csv_dict[mig_variable]}_{direction_lower}flow',
+        # title=f"{var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][1]}: top 10 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>gross</span>)",
+        title=f"Top 10 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>gross</span>)",
+        labels={
+            'secondary_county_y':f'{mig_direction_dict3[mig_direction]}',
+            f'{var_csv_dict[mig_variable]}_{direction_lower}flow': var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][0]},
+    )
+
+    fig.update_layout(
+        xaxis_title = None,
+        margin = {
+            'l':0,
+            'r':10,
+            't':50,
+            'b':10
+            },
+        height=380,
+        width=550,
+        bargap=0.7,
+        yaxis = dict(
+            tickformat = tick_format_dict[mig_variable]
+        )
+    )
+
+    
 
     fig.update_traces(
         marker_color='rgba(253,141,60, 1)', 
@@ -652,7 +712,7 @@ def plotly_bar_net():
             'b':10
             },
         width=400,
-        height=650,
+        height=725,
         bargap=0.5,
         xaxis = dict(
             tickformat = "~s"
@@ -675,11 +735,8 @@ def plotly_bar_net_county():
     df_bar_2 = df_bar_2.loc[:, ~df_bar_2.columns.str.startswith('Unnamed')]
     df_bar_2 = df_bar_2[(df_bar_2['year1'].isin(full_years)) & (df_bar_2['year2'].isin(full_years))]
     df_bar_2['secondary_county_y'] = df_bar_2['secondary_county_y'].map(secondary_metro).fillna(df_bar_2['secondary_county_y'])
-    df_bar_grouped_2 = df_bar_2.groupby('unique_tag2').sum().reset_index()
-    df_bar_grouped_2['secondary_county'] = df_bar_grouped_2['unique_tag2'].str.split('-').str[1]
-    df_bar_grouped_2['secondary_state'] = df_bar_grouped_2['unique_tag2'].str.split('-').str[2]
-    df_bar_grouped_2['secondary'] = df_bar_grouped_2['secondary_county'] + ', ' + df_bar_grouped_2['secondary_state'] 
-    df_bar_grouped_2 = df_bar_grouped_2[['secondary', 'n2_net', 'agi_net']]
+    df_bar_grouped_2 = df_bar_2.groupby('secondary_county_y').sum().reset_index()
+    df_bar_grouped_2 = df_bar_grouped_2[['secondary_county_y', 'n2_net', 'agi_net']]
 
     # the 2 easy dataframes - just take the top 10
     df_n2_in = df_bar_grouped_2.sort_values('n2_net', ascending=False).head(10)
@@ -703,13 +760,18 @@ def plotly_bar_net_county():
     else:
         df = df_agi_out
 
+    tick_format_dict = {
+        'Dollars':'$~s',
+        'People':','
+    }
+
     fig = px.bar(
         df,
-        y='secondary', 
+        y='secondary_county_y', 
         x=f'{var_csv_dict[mig_variable]}_net',
-        title=f"{var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][1]}: top 10 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>net</span>)",
+        title=f"{var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][1]}: top 10 {mig_direction_dict2[mig_direction]} (<span style='text-decoration: underline;'>net</span>)",
         labels={
-            'secondary':f'{mig_direction_dict3[mig_direction]}',
+            'secondary_county_y':f'{mig_direction_dict3[mig_direction]}',
             f'{var_csv_dict[mig_variable]}_net': var_csv_dict3[f'{var_csv_dict[mig_variable]}_net']
             },
         orientation='h'
@@ -725,10 +787,10 @@ def plotly_bar_net_county():
             'b':10
             },
         width=400,
-        height=650,
+        height=725,
         bargap=0.5,
         xaxis = dict(
-            tickformat = "~s"
+            tickformat = tick_format_dict[mig_variable]
         ),
     )
 
@@ -741,7 +803,6 @@ def plotly_bar_net_county():
     fig.update_yaxes(autorange="reversed")
 
     return fig
-    # return df_bar_grouped_2
 
 def dollars_person_bar():
     df = pd.read_csv('Data/county_to_county_ALL.csv')
@@ -872,7 +933,7 @@ def dollars_person_map():
     return m
 
 # define columns
-col1, col2 = st.columns([1.5,1])
+col1, col2 = st.columns([1.75,1])
 
 # decision time
 if summary == '11-County Atlanta Metro':
@@ -907,10 +968,12 @@ else:
         col2.plotly_chart(plotly_line_2_county(), use_container_width=True, config = {'displayModeBar': False})
     else:
         col1.plotly_chart(plotly_bar_net_county(), use_container_width=True, config = {'displayModeBar': False})
+        # col1.dataframe(plotly_bar_net_county())
         with col2:
             subcol1, subcol2 = st.columns([1, 1])
             subcol1.metric(label=f'Total {direction_lower}flow (gross)', value=county_metric_cumulative())
             subcol2.metric(label=f'Total {direction_lower}flow (net)', value=county_metric_net())
         col2.plotly_chart(plotly_line_1_county(), use_container_width=True, config = {'displayModeBar': False})
+        col2.plotly_chart(plotly_bar_total_county(), use_container_width=True, config = {'displayModeBar': False})
         # col2.dataframe(plotly_line_1_county())
 
