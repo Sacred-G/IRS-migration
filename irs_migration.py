@@ -272,7 +272,9 @@ secondary_metro = {
     'Davidson County, TN':'Davidson County, TN (Nashville)',
     'Suffolk County, MA':'Suffolk County, MA (Boston)',
     'Denton County, TX':'Denton County, TX (Dallas metro)',
-    'Prince George\'s County, MD':'Prince George\'s County, MD (DC metro)'
+    'Prince George\'s County, MD':'Prince George\'s County, MD (DC metro)',
+    'Richland County, SC':'Richland County, SC (Columbia)',
+    'Cumberland County, NC':'Cumberland County, NC (Fayetteville)'
 }
 
 format_dict = {
