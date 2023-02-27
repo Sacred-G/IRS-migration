@@ -243,7 +243,30 @@ secondary_metro = {
     'Warren County, OH':'Warren County, OH (Cincinnati metro)',
     'Johnson County, KS':'Johnson County, KS (Kansas City metro)',
     'Somerset County, NJ':'Somerset County, NJ (NYC metro)',
-    'Maricopa County, AZ':'Maricopa County, AZ (Phoenix)'
+    'Maricopa County, AZ':'Maricopa County, AZ (Phoenix)',
+    'Jefferson County, AL':'Jefferson County, AL (Birmingham)',
+    'Hillsborough County, FL':'Hillsborough County, FL (Tampa)',
+    'Lee County, AL':'Lee County, AL (Opelika)',
+    'Okaloosa County, FL':'Okaloosa County, FL (Panhandle)',
+    'Loudoun County, VA':'Loudoun County, VA (DC metro)',
+    'Fairfax County, VA':'Fairfax County, VA (DC metro)',
+    'King County, WA':'King County, WA (Seattle)',
+    'Fort Bend County, TX':'Fort Bend County, TX (Houston metro)',
+    'Forsyth County, NC':'Forsyth County, NC (Winston-Salem)',
+    'Collin County, TX':'Collin County, TX (Dallas metro)',
+    'Orange County, CA':'Orange County, CA (LA metro)',
+    'Chesterfield County, VA':'Chesterfield County, VA (Richmond metro)',
+    'Tarrant County, TX':'Tarrant County, TX (Fort Worth)',
+    'Brevard County, FL':'Brevard County, FL (Melbourne)',
+    'Lee County, FL':'Lee County, FL (Fort Myers)',
+    'Wake County, NC':'Wake County, NC (Raleigh)',
+    'Pinellas County, FL':'Pinellas County, FL (St. Pete/Clearwater)',
+    'Clarke County, GA':'Athens-Clarke County, GA',
+    'Richmond County, GA':'Augusta-Richmond County, GA',
+    'Buncombe County, NC':'Buncombe County, NC (Asheville)',
+    'Middlesex County, MA':'Middlesex County, MA (Boston metro)',
+    'District of Columbia, DC':'Washington, D.C.',
+    'Henrico County, VA':'Henrico County, VA (Richmond metro)'
 }
 
 format_dict = {
@@ -465,7 +488,7 @@ def plotly_line_2():
     format_dict = {
         'Dollars':'$~s',
         'People':',',
-        'Dollars per capita':'$,'
+        'Dollars per capita':'$~s'
     }
 
     fig = px.line(
@@ -520,6 +543,12 @@ def plotly_line_2_county():
     df_line = pd.read_csv('Data/county_total_ALL.csv')
     df_line = df_line[df_line['arc_county'] == county]
 
+    format_dict = {
+        'Dollars':'$~s',
+        'People':',',
+        'Dollars per capita':'$~s'
+    }
+
     fig = px.line(
         df_line, 
         x="year2", 
@@ -555,7 +584,7 @@ def plotly_line_2_county():
             'b':10
             },
         width=400,
-        height=300,
+        height=400,
         hovermode="x unified"
         )
 
@@ -840,7 +869,7 @@ def dollars_person_bar():
         x=f'agi_capita_{direction_lower}', 
         y='sec_unique', 
         orientation='h',
-        title=f'Top 10 AGI per capita {mig_direction_dict2[mig_direction]} flowing {mig_direction_dict[mig_direction]} {summary_dict[summary]}',
+        title=f'Top 10 AGI / capita {mig_direction_dict2[mig_direction]} flowing {mig_direction_dict[mig_direction]} {summary_dict[summary]}',
         labels={
             'sec_unique':f'{mig_direction_dict3[mig_direction]}',
             f'agi_capita_{direction_lower}': f'Average AGI per capita {direction_lower}flow'
@@ -873,6 +902,62 @@ def dollars_person_bar():
 
 
     return fig
+
+def dollars_person_bar_county():
+    df = pd.read_csv('Data/total_tester.csv')
+    df = df.loc[:, ~df.columns.str.startswith('Unnamed')]
+    df = df[(df['year1'].isin(full_years)) & (df['year2'].isin(full_years))]
+    df = df[df['arc_county'] == county]
+    df['sec_unique'] = df['secondary_county_y'].map(secondary_metro).fillna(df['secondary_county_y'])
+    df = df.groupby('sec_unique').sum().reset_index()
+    df['agi_capita_in'] = df['agi_inflow'] / df['n2_inflow']
+    df['agi_capita_out'] = df['agi_outflow'] / df['n2_outflow']
+    df = df[['sec_unique', 'agi_capita_in', 'agi_capita_out']]
+
+    if mig_direction == 'In':
+        df = df.sort_values('agi_capita_in', ascending=False).head(12)
+    else:
+        df = df.sort_values('agi_capita_out', ascending=False).head(12)
+
+    fig = px.bar(
+        df, 
+        x=f'agi_capita_{direction_lower}', 
+        y='sec_unique', 
+        orientation='h',
+        title=f'Top 12 AGI / capita {mig_direction_dict2[mig_direction]} flowing {mig_direction_dict[mig_direction]} {summary_dict[summary]}',
+        labels={
+            'sec_unique':f'{mig_direction_dict3[mig_direction]}',
+            f'agi_capita_{direction_lower}': f'Average AGI per capita {direction_lower}flow'
+            })
+
+    fig.update_traces(
+        marker_color='rgba(253,141,60, 1)', 
+        marker_line_color='rgba(253,141,60, 0)',
+        marker_line_width=3, 
+        )
+
+    fig.update_layout(
+        xaxis_title = None,
+        yaxis_title = None,
+        margin = {
+            'l':0,
+            'r':10,
+            't':50,
+            'b':10
+            },
+        width=500,
+        height=725,
+        bargap=0.5,
+        xaxis = dict(
+            tickformat = "$~s"
+        ),
+    )
+
+    fig.update_yaxes(autorange="reversed")
+
+
+    return fig
+
 
 def dollars_person_map():
     m = folium.Map(location=[33.878999211616836, -84.37241267133787], zoom_start=9, tiles='CartoDB positron', scrollWheelZoom=False)
@@ -948,12 +1033,11 @@ def dollars_person_map():
 
     return m
 
-# define columns
-col1, col2 = st.columns([1.75,1])
 
 # decision time
 if summary == '11-County Atlanta Metro':
     if mig_variable == 'Dollars per capita':
+        col1, col2 = st.columns([1.5,1])
         with col1:
             st.write(f"Average AGI per capita ({direction_lower}flow)")
             st_map = st_folium(dollars_person_map(), width=650)
@@ -964,6 +1048,7 @@ if summary == '11-County Atlanta Metro':
         col2.plotly_chart(plotly_line_2(), use_container_width=True, config = {'displayModeBar': False})
         col2.plotly_chart(dollars_person_bar(), use_container_width=True, config = {'displayModeBar': False})
     else:
+        col1, col2 = st.columns([1.75,1])
         col1.plotly_chart(plotly_bar_net(), use_container_width=True, config = {'displayModeBar': False})
         with col2:
             subcol1, subcol2 = st.columns([1, 1])
@@ -975,21 +1060,20 @@ if summary == '11-County Atlanta Metro':
 
 else:
     if mig_variable == 'Dollars per capita':
-        with col1:
-            st.write(f'coming soon for {county}')
+        col1, col2 = st.columns([1.5,1])
+        col1.plotly_chart(dollars_person_bar_county(), use_container_width=True, config = {'displayModeBar': False})
         with col2:
             subcol1, subcol2 = st.columns([1, 1])
-            subcol1.metric(label=f'Average {direction_lower}flow per capita - {county}', value=county_metric_cumulative())
+            subcol1.metric(label=f'Average {direction_lower}flow per capita', value=county_metric_cumulative())
             subcol2.write("")
         col2.plotly_chart(plotly_line_2_county(), use_container_width=True, config = {'displayModeBar': False})
     else:
+        col1, col2 = st.columns([1.75,1])
         col1.plotly_chart(plotly_bar_net_county(), use_container_width=True, config = {'displayModeBar': False})
-        # col1.dataframe(plotly_bar_net_county())
         with col2:
             subcol1, subcol2 = st.columns([1, 1])
             subcol1.metric(label=f'Total {direction_lower}flow (gross)', value=county_metric_cumulative())
             subcol2.metric(label=f'Total {direction_lower}flow (net)', value=county_metric_net())
         col2.plotly_chart(plotly_line_1_county(), use_container_width=True, config = {'displayModeBar': False})
         col2.plotly_chart(plotly_bar_total_county(), use_container_width=True, config = {'displayModeBar': False})
-        # col2.dataframe(plotly_line_1_county())
 
