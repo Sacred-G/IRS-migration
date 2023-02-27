@@ -271,7 +271,8 @@ secondary_metro = {
     'Bexar County, TX':'Bexar County, TX (San Antonio)',
     'Davidson County, TN':'Davidson County, TN (Nashville)',
     'Suffolk County, MA':'Suffolk County, MA (Boston)',
-    'Denton County, TX':'Denton County, TX (Dallas metro)'
+    'Denton County, TX':'Denton County, TX (Dallas metro)',
+    'Prince George\'s County, MD':'Prince George\'s County, MD (DC metro)'
 }
 
 format_dict = {
