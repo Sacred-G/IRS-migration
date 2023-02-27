@@ -266,7 +266,12 @@ secondary_metro = {
     'Buncombe County, NC':'Buncombe County, NC (Asheville)',
     'Middlesex County, MA':'Middlesex County, MA (Boston metro)',
     'District of Columbia, DC':'Washington, D.C.',
-    'Henrico County, VA':'Henrico County, VA (Richmond metro)'
+    'Henrico County, VA':'Henrico County, VA (Richmond metro)',
+    'Jefferson County, KY':'Jefferson County, KY (Louisville)',
+    'Bexar County, TX':'Bexar County, TX (San Antonio)',
+    'Davidson County, TN':'Davidson County, TN (Nashville)',
+    'Suffolk County, MA':'Suffolk County, MA (Boston)',
+    'Denton County, TX':'Denton County, TX (Dallas metro)'
 }
 
 format_dict = {
