@@ -275,7 +275,8 @@ secondary_metro = {
     'Prince George\'s County, MD':'Prince George\'s County, MD (DC metro)',
     'Richland County, SC':'Richland County, SC (Columbia)',
     'Cumberland County, NC':'Cumberland County, NC (Fayetteville)',
-    'Orange County, FL':'Orange County, FL (Orlando)'
+    'Orange County, FL':'Orange County, FL (Orlando)',
+    'Suffolk County, NY':'Suffolk County, NY (Long Island)'
 }
 
 format_dict = {
