@@ -123,7 +123,7 @@ slider_end = slider_years[-1]
 
 years = st.sidebar.slider(
     'Year range:',
-    slider_start,slider_end,(2018,slider_end)
+    slider_start,slider_end,(2017,2019)
 )
 # convert years selected to list
 years = list(years)
@@ -286,7 +286,7 @@ format_dict = {
 }
 
 
-# create a function to read in the correct metro data to the metric
+# function that calculates the CUMULATIVE flow of dollars or people at a metro level
 def metro_metric_cumulative():
     df = pd.read_csv('Data/metro_ALL.csv')
     df = df[(df['year1'].isin(full_years)) & (df['year2'].isin(full_years))]
@@ -311,7 +311,7 @@ def metro_metric_cumulative():
     x1 = metric_dict[mig_variable]
     return x1
 
-# create a function to read in the correct metro data to the metric
+# function that calculates the CUMULATIVE flow of dollars or people at a county level
 def county_metric_cumulative():
     df = pd.read_csv('Data/county_total_ALL.csv')
     df = df[(df['year1'].isin(full_years)) & (df['year2'].isin(full_years))]
@@ -338,7 +338,7 @@ def county_metric_cumulative():
     x1 = metric_dict[mig_variable]
     return x1
 
-# create another function to calculate the net flow of people & dollars
+# function that calculates the NET flow of dollars or people at a metro level
 def metro_metric_net():
     df = pd.read_csv('Data/metro_ALL.csv')
     df = df[(df['year1'].isin(full_years)) & (df['year2'].isin(full_years))]
@@ -353,7 +353,7 @@ def metro_metric_net():
     x2 = metric_dict1[mig_variable]
     return x2
 
-
+# function that calculates the NET flow of dollars or people at a county level
 def county_metric_net():
     df = pd.read_csv('Data/county_total_ALL.csv')
     df = df[(df['year1'].isin(full_years)) & (df['year2'].isin(full_years))]
