@@ -274,7 +274,8 @@ secondary_metro = {
     'Denton County, TX':'Denton County, TX (Dallas metro)',
     'Prince George\'s County, MD':'Prince George\'s County, MD (DC metro)',
     'Richland County, SC':'Richland County, SC (Columbia)',
-    'Cumberland County, NC':'Cumberland County, NC (Fayetteville)'
+    'Cumberland County, NC':'Cumberland County, NC (Fayetteville)',
+    'Orange County, FL':'Orange County, FL (Orlando)'
 }
 
 format_dict = {
