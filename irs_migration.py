@@ -678,7 +678,7 @@ def plotly_bar_total_county():
         x='secondary_county_y', 
         y=f'{var_csv_dict[mig_variable]}_{direction_lower}flow',
         # title=f"{var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][1]}: top 10 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>gross</span>)",
-        title=f"Top 10 {mig_direction_dict2[mig_direction]} outside the metro (<span style='text-decoration: underline;'>gross</span>)",
+        title=f"Top 10 {mig_direction_dict2[mig_direction]} (<span style='text-decoration: underline;'>gross</span>)",
         labels={
             'secondary_county_y':f'{mig_direction_dict3[mig_direction]}',
             f'{var_csv_dict[mig_variable]}_{direction_lower}flow': var_csv_dict2[f'{var_csv_dict[mig_variable]}_{direction_lower}flow'][0]},
